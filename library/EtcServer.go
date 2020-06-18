@@ -37,5 +37,5 @@ func InitServer() (err error) {
 		etcLease:  lease,
 	}
 
-	return 
+	return
 }
