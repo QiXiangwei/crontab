@@ -1,0 +1,5 @@
+{
+  "apiPort": 8090,
+  "apiReadTimeout": 5000,
+  "apiWriteTimeOut": 5000
+}

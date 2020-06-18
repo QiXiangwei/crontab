@@ -1,4 +1,4 @@
-module github.com/QiXiangwei/crontab
+module crontab
 
 go 1.14
 
