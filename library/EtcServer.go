@@ -1,7 +1,9 @@
 package library
 
 import (
+	"crontab/master"
 	"github.com/coreos/etcd/clientv3"
+	"time"
 )
 
 type EtcServer struct {
@@ -22,8 +24,8 @@ func InitServer() (err error) {
 	)
 
 	if cli, err = clientv3.New(clientv3.Config{
-		Endpoints:            nil,
-		DialTimeout:          0,
+		Endpoints:            master.GConfig.EtcEndpoints,
+		DialTimeout:          time.Duration(master.GConfig.EtcDialTimeout) * time.Millisecond,
 	}); err != nil {
 		return
 	}

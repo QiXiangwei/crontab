@@ -3,6 +3,7 @@ package master
 import (
 	"net"
 	"net/http"
+	"time"
 )
 
 type ApiServer struct {
@@ -29,6 +30,12 @@ func InitApiServer() (err error) {
 
 	if listen, err = net.Listen("tcp", ":8090"); err != nil {
 		return
+	}
+
+	httpServer = &http.Server{
+		Handler:           mux,
+		ReadTimeout:       time.Duration(GConfig.apiReadTimeout) * time.Millisecond,
+		WriteTimeout:      time.Duration(GConfig.apiWriteTimeOut) * time.Millisecond,
 	}
 
 	GApiServer = &ApiServer{HttpServer:httpServer}

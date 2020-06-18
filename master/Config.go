@@ -9,6 +9,9 @@ type Config struct {
 	apiPort         int `json:"api_port"`
 	apiReadTimeout  int `json:"api_read_timeout"`
 	apiWriteTimeOut int `json:"api_write_time_out"`
+
+	EtcEndpoints    []string `json:"etc_endpoints"`
+	EtcDialTimeout  int `json:"etc_dial_timeout"`
 }
 
 var (

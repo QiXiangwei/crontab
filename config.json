@@ -1,5 +1,8 @@
 {
   "apiPort": 8090,
   "apiReadTimeout": 5000,
-  "apiWriteTimeOut": 5000
+  "apiWriteTimeOut": 5000,
+
+  "EtcEndpoints": {"localhost":2379},
+  "EtcDialTimeout": 5000
 }
