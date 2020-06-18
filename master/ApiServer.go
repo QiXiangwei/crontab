@@ -3,6 +3,7 @@ package master
 import (
 	"net"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -28,7 +29,7 @@ func InitApiServer() (err error) {
 	mux = http.NewServeMux()
 	mux.HandleFunc("/job/save", handleJobSave)
 
-	if listen, err = net.Listen("tcp", ":8090"); err != nil {
+	if listen, err = net.Listen("tcp", ":" + strconv.Itoa(GConfig.apiPort)); err != nil {
 		return
 	}
 
