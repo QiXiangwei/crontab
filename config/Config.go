@@ -1,4 +1,4 @@
-package master
+package config
 
 import (
 	"encoding/json"
@@ -6,12 +6,17 @@ import (
 )
 
 type Config struct {
-	apiPort         int `json:"api_port"`
-	apiReadTimeout  int `json:"api_read_timeout"`
-	apiWriteTimeOut int `json:"api_write_time_out"`
+	ApiPort         int `json:"api_port"`
+	ApiReadTimeout  int `json:"api_read_timeout"`
+	ApiWriteTimeOut int `json:"api_write_time_out"`
 
 	EtcEndpoints    []string `json:"etc_endpoints"`
 	EtcDialTimeout  int `json:"etc_dial_timeout"`
+
+	RedisAddr       string `json:"redis_addr"`
+	RedisPassword   string `json:"redis_password"`
+	RedisDB         int `json:"redis_db"`
+
 }
 
 var (

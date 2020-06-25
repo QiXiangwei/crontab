@@ -1,9 +1,13 @@
 package main
 
 import (
+	"crontab/config"
+	"crontab/library"
 	"crontab/master"
 	"flag"
+	"fmt"
 	"runtime"
+	"time"
 )
 
 var (
@@ -28,11 +32,25 @@ func main()  {
 	initArgs()
 	initEnv()
 
-	if err = master.InitConfig(confFile); err != nil {
+	if err = config.InitConfig(confFile); err != nil {
+		fmt.Println(err)
 		return
 	}
 
-	if err = master.InitApiServer(); err != nil {
+
+	if err = library.InitServer(); err != nil {
+		fmt.Println(err)
 		return
 	}
+
+
+	if err = master.InitApiServer(); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	for {
+		time.Sleep(1 * time.Second)
+	}
+
 }

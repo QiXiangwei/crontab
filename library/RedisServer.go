@@ -1,6 +1,7 @@
 package library
 
 import (
+	"crontab/config"
 	"github.com/go-redis/redis"
 )
 
@@ -18,12 +19,12 @@ func InitRedisClient() (err error) {
 	)
 
 	c = redis.NewClient(&redis.Options{
-		Addr:               "localhost:6379",
-		Password:           "",
-		DB:                 0,
+		Addr:     config.GConfig.RedisAddr,
+		Password: config.GConfig.RedisPassword,
+		DB:       config.GConfig.RedisDB,
 	})
 
-	GRedisClient = &RedisServer{RedisClient:c}
+	GRedisClient = &RedisServer{RedisClient: c}
 
 	if _, err = c.Ping().Result(); err != nil {
 		return
