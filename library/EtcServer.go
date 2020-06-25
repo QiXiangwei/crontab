@@ -61,7 +61,7 @@ func (etcServer *EtcServer) Save(job *common.Job) (oldJob *common.Job, err error
 	}
 
 	if putRep.PrevKv != nil {
-		if err = json.Unmarshal(putRep.PrevKv.Value, oldJob); err != nil {
+		if err = json.Unmarshal(putRep.PrevKv.Value, &oldJob); err != nil {
 			err = nil
 			return
 		}

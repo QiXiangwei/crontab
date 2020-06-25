@@ -5,7 +5,6 @@ import (
 	"crontab/config"
 	"crontab/library"
 	"encoding/json"
-	"fmt"
 	"net"
 	"net/http"
 	"strconv"
@@ -29,16 +28,12 @@ func handleJobSave(rep http.ResponseWriter, req *http.Request) {
 		posJob string
 	)
 	if err = req.ParseForm(); err != nil {
-		fmt.Println("parse failed")
 		goto ERR
 	}
-
-	posJob = req.PostForm.Get("job")
-	fmt.Println(posJob)
+	posJob = req.PostFormValue("job")
 	if err = json.Unmarshal([]byte(posJob), &job); err != nil {
 		goto ERR
 	}
-	fmt.Println(job.Name)
 
 	if old, err = library.GEtcServer.Save(job); err != nil {
 		goto ERR
@@ -48,9 +43,9 @@ func handleJobSave(rep http.ResponseWriter, req *http.Request) {
 	}
 	return
 	ERR:
-	if result, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
-		rep.Write(result)
-	}
+		if result, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
+			rep.Write(result)
+		}
 }
 
 func InitApiServer() (err error) {
