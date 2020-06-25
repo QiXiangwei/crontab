@@ -19,6 +19,35 @@ var (
 	GApiServer *ApiServer
 )
 
+func InitApiServer() (err error) {
+	var (
+		httpServer *http.Server
+		mux        *http.ServeMux
+		listen     net.Listener
+	)
+
+	mux = http.NewServeMux()
+	mux.HandleFunc("/job/save", handleJobSave)
+	mux.HandleFunc("/job/delete", handleJobDelete)
+
+	if listen, err = net.Listen("tcp", ":" + strconv.Itoa(config.GConfig.ApiPort)); err != nil {
+		return
+	}
+
+	httpServer = &http.Server{
+		Handler:           mux,
+		ReadTimeout:       time.Duration(config.GConfig.ApiReadTimeout) * time.Millisecond,
+		WriteTimeout:      time.Duration(config.GConfig.ApiWriteTimeOut) * time.Millisecond,
+	}
+
+	GApiServer = &ApiServer{HttpServer:httpServer}
+
+	go httpServer.Serve(listen)
+
+	return
+}
+
+
 func handleJobSave(rep http.ResponseWriter, req *http.Request) {
 	var (
 		err    error
@@ -42,35 +71,37 @@ func handleJobSave(rep http.ResponseWriter, req *http.Request) {
 		rep.Write(result)
 	}
 	return
-	ERR:
-		if result, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
-			rep.Write(result)
-		}
+ERR:
+	if result, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
+		rep.Write(result)
+	}
 }
 
-func InitApiServer() (err error) {
+func handleJobDelete(rep http.ResponseWriter, req *http.Request) {
 	var (
-		httpServer *http.Server
-		mux        *http.ServeMux
-		listen     net.Listener
+		err        error
+		result     []byte
+		deleteName string
+		deleteKey  string
+		deleteJob  *common.Job
 	)
-
-	mux = http.NewServeMux()
-	mux.HandleFunc("/job/save", handleJobSave)
-
-	if listen, err = net.Listen("tcp", ":" + strconv.Itoa(config.GConfig.ApiPort)); err != nil {
-		return
+	if err = req.ParseForm(); err != nil {
+		goto ERR
 	}
 
-	httpServer = &http.Server{
-		Handler:           mux,
-		ReadTimeout:       time.Duration(config.GConfig.ApiReadTimeout) * time.Millisecond,
-		WriteTimeout:      time.Duration(config.GConfig.ApiWriteTimeOut) * time.Millisecond,
+	deleteName = req.PostForm.Get("deleteName")
+	deleteKey  = common.CRON_JOB_KEY + deleteName
+	if deleteJob, err = library.GEtcServer.Delete(deleteKey); err != nil {
+		goto ERR
 	}
 
-	GApiServer = &ApiServer{HttpServer:httpServer}
-
-	go httpServer.Serve(listen)
-
+	if result, err = common.BuildResponse(0, "success", deleteJob); err == nil {
+		rep.Write(result)
+	}
 	return
+
+ERR:
+	if result, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
+		rep.Write(result)
+	}
 }

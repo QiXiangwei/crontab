@@ -52,7 +52,7 @@ func (etcServer *EtcServer) Save(job *common.Job) (oldJob *common.Job, err error
 		jobValue []byte
 		putRep   *clientv3.PutResponse
 	)
-	jobKey := "/cron/job/" + job.Name
+	jobKey := common.CRON_JOB_KEY + job.Name
 	if jobValue, err = json.Marshal(job); err != nil {
 		return
 	}
@@ -68,4 +68,19 @@ func (etcServer *EtcServer) Save(job *common.Job) (oldJob *common.Job, err error
 	}
 
 	return
+}
+
+func (etcServer *EtcServer) Delete(key string) (deleteJob *common.Job, err error) {
+	var (
+		deleteRep *clientv3.DeleteResponse
+	)
+	if deleteRep, err = etcServer.etcKv.Delete(context.TODO(), key, clientv3.WithPrevKV()); err != nil {
+		return
+	}
+	if len(deleteRep.PrevKvs) != 0 {
+		if err = json.Unmarshal(deleteRep.PrevKvs[0].Value, &deleteRep); err != nil {
+			err = nil
+			return
+		}
+	}
 }
