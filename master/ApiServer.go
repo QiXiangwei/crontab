@@ -29,6 +29,7 @@ func InitApiServer() (err error) {
 	mux = http.NewServeMux()
 	mux.HandleFunc("/job/save", handleJobSave)
 	mux.HandleFunc("/job/delete", handleJobDelete)
+	mux.HandleFunc("/job/list", handleJobList)
 
 	if listen, err = net.Listen("tcp", ":" + strconv.Itoa(config.GConfig.ApiPort)); err != nil {
 		return
@@ -45,6 +46,30 @@ func InitApiServer() (err error) {
 	go httpServer.Serve(listen)
 
 	return
+}
+
+func handleJobList(rep http.ResponseWriter, req *http.Request) {
+	var (
+		err error
+		dirKey string
+		jobList []*common.Job
+		result  []byte
+	)
+
+	dirKey = common.CRON_JOB_KEY
+	if jobList, err = library.GEtcServer.List(dirKey); err != nil {
+		goto ERR
+	}
+
+	if result, err = common.BuildResponse(0, "success", jobList); err == nil {
+		rep.Write(result)
+	}
+
+	return
+ERR:
+	if result, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
+		rep.Write(result)
+	}
 }
 
 

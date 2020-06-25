@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/coreos/etcd/clientv3"
+	"github.com/coreos/etcd/mvcc/mvccpb"
 	"time"
 )
 
@@ -78,9 +79,34 @@ func (etcServer *EtcServer) Delete(key string) (deleteJob *common.Job, err error
 		return
 	}
 	if len(deleteRep.PrevKvs) != 0 {
-		if err = json.Unmarshal(deleteRep.PrevKvs[0].Value, &deleteRep); err != nil {
+		if err = json.Unmarshal(deleteRep.PrevKvs[0].Value, &deleteJob); err != nil {
 			err = nil
 			return
 		}
 	}
+	return
+}
+
+func (etcServer *EtcServer) List(dirKey string) (jobList []*common.Job, err error) {
+	var (
+		getRep *clientv3.GetResponse
+		kvPair *mvccpb.KeyValue
+		temp   *common.Job
+	)
+
+	jobList = make([]*common.Job, 0)
+
+	if getRep, err = etcServer.etcKv.Get(context.TODO(), dirKey, clientv3.WithPrefix()); err != nil {
+		return
+	}
+
+	for _, kvPair = range getRep.Kvs {
+		temp = &common.Job{}
+		if err = json.Unmarshal(kvPair.Value, temp); err != nil {
+			err = nil
+			continue
+		}
+		jobList = append(jobList, temp)
+	}
+	return
 }
