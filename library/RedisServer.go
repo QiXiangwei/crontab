@@ -19,9 +19,9 @@ func InitRedisClient() (err error) {
 	)
 
 	c = redis.NewClient(&redis.Options{
-		Addr:     config.GConfig.RedisAddr,
-		Password: config.GConfig.RedisPassword,
-		DB:       config.GConfig.RedisDB,
+		Addr:     config.GMasterConfig.RedisAddr,
+		Password: config.GMasterConfig.RedisPassword,
+		DB:       config.GMasterConfig.RedisDB,
 	})
 
 	GRedisClient = &RedisServer{RedisClient: c}

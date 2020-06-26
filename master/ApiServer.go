@@ -33,14 +33,14 @@ func InitApiServer() (err error) {
 	mux.HandleFunc("/job/list", handleJobList)
 	mux.HandleFunc("/job/kill", handleJobKill)
 
-	if listen, err = net.Listen("tcp", ":" + strconv.Itoa(config.GConfig.ApiPort)); err != nil {
+	if listen, err = net.Listen("tcp", ":" + strconv.Itoa(config.GMasterConfig.ApiPort)); err != nil {
 		return
 	}
 
 	httpServer = &http.Server{
 		Handler:           mux,
-		ReadTimeout:       time.Duration(config.GConfig.ApiReadTimeout) * time.Millisecond,
-		WriteTimeout:      time.Duration(config.GConfig.ApiWriteTimeOut) * time.Millisecond,
+		ReadTimeout:       time.Duration(config.GMasterConfig.ApiReadTimeout) * time.Millisecond,
+		WriteTimeout:      time.Duration(config.GMasterConfig.ApiWriteTimeOut) * time.Millisecond,
 	}
 
 	GApiServer = &ApiServer{HttpServer:httpServer}

@@ -29,8 +29,8 @@ func InitServer() (err error) {
 	)
 
 	if cli, err = clientv3.New(clientv3.Config{
-		Endpoints:            config.GConfig.EtcEndpoints,
-		DialTimeout:          time.Duration(config.GConfig.EtcDialTimeout) * time.Millisecond,
+		Endpoints:            config.GMasterConfig.EtcEndpoints,
+		DialTimeout:          time.Duration(config.GMasterConfig.EtcDialTimeout) * time.Millisecond,
 	}); err != nil {
 		fmt.Println("etcd connect failed")
 		return

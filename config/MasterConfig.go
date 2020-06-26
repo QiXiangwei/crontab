@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 )
 
-type Config struct {
+type MasterConfig struct {
 	ApiPort         int `json:"api_port"`
 	ApiReadTimeout  int `json:"api_read_timeout"`
 	ApiWriteTimeOut int `json:"api_write_time_out"`
@@ -20,13 +20,13 @@ type Config struct {
 }
 
 var (
-	GConfig *Config
+	GMasterConfig *MasterConfig
 )
 
-func InitConfig(confFile string) (err error) {
+func InitMasterConfig(confFile string) (err error) {
 	var (
 		context []byte
-		config  *Config
+		config  *MasterConfig
 	)
 
 	if context, err = ioutil.ReadFile(confFile); err != nil {
@@ -37,6 +37,6 @@ func InitConfig(confFile string) (err error) {
 		return
 	}
 
-	GConfig = config
+	GMasterConfig = config
 	return
 }

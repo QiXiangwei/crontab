@@ -32,7 +32,7 @@ func main()  {
 	initArgs()
 	initEnv()
 
-	if err = config.InitConfig(confFile); err != nil {
+	if err = config.InitMasterConfig(confFile); err != nil {
 		fmt.Println(err)
 		return
 	}
