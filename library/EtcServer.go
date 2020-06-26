@@ -110,3 +110,37 @@ func (etcServer *EtcServer) List(dirKey string) (jobList []*common.Job, err erro
 	}
 	return
 }
+
+func (etcServer *EtcServer) CreateLease(leaseTime int64) (leaseId clientv3.LeaseID, err error) {
+	var (
+		leaseGrantResp *clientv3.LeaseGrantResponse
+	)
+
+	if leaseGrantResp, err = etcServer.etcLease.Grant(context.TODO(), leaseTime); err != nil {
+		return
+	}
+
+	leaseId = leaseGrantResp.ID
+	return
+}
+
+func (etcServer *EtcServer) Put(key string, value string) (result []byte, err error) {
+	var (
+		putResp *clientv3.PutResponse
+	)
+
+	if putResp, err = etcServer.etcKv.Put(context.TODO(), key, value, clientv3.WithPrevKV()); err != nil {
+		return
+	}
+
+	result = putResp.PrevKv.Value
+	return
+}
+
+func (etcServer *EtcServer) PutWithLease(key string, value string, leaseId clientv3.LeaseID) (err error) {
+
+	if _, err = etcServer.etcKv.Put(context.TODO(), key, value, clientv3.WithLease(leaseId)); err != nil {
+		return
+	}
+	return
+}

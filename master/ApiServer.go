@@ -5,6 +5,7 @@ import (
 	"crontab/config"
 	"crontab/library"
 	"encoding/json"
+	"github.com/coreos/etcd/clientv3"
 	"net"
 	"net/http"
 	"strconv"
@@ -30,6 +31,7 @@ func InitApiServer() (err error) {
 	mux.HandleFunc("/job/save", handleJobSave)
 	mux.HandleFunc("/job/delete", handleJobDelete)
 	mux.HandleFunc("/job/list", handleJobList)
+	mux.HandleFunc("/job/kill", handleJobKill)
 
 	if listen, err = net.Listen("tcp", ":" + strconv.Itoa(config.GConfig.ApiPort)); err != nil {
 		return
@@ -46,6 +48,41 @@ func InitApiServer() (err error) {
 	go httpServer.Serve(listen)
 
 	return
+}
+
+func handleJobKill(rep http.ResponseWriter, req *http.Request) {
+	var (
+		err     error
+		result  []byte
+		name    string
+		key     string
+		leaseId clientv3.LeaseID
+	)
+
+
+	if err = req.ParseForm(); err != nil {
+		goto ERR
+	}
+
+	name = req.PostForm.Get("killName")
+	key  = common.CRON_KILL_KEY + name
+	if leaseId, err = library.GEtcServer.CreateLease(1); err != nil {
+		goto ERR
+	}
+
+	if err = library.GEtcServer.PutWithLease(key, "", leaseId); err != nil {
+		goto ERR
+	}
+
+	if result, err = common.BuildResponse(0, "success", nil); err == nil {
+		rep.Write(result)
+	}
+
+	return
+ERR:
+	if result, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
+		rep.Write(result)
+	}
 }
 
 func handleJobList(rep http.ResponseWriter, req *http.Request) {
