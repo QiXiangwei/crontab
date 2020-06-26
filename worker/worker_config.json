@@ -1,0 +1,4 @@
+{
+  "etc_endpoints"    : ["localhost:2379"],
+  "etc_dial_timeout" : 5000
+}

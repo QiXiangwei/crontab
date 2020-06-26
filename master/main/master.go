@@ -15,7 +15,7 @@ var (
 )
 
 func initArgs() {
-	flag.StringVar(&confFile, "config", "config.json", "")
+	flag.StringVar(&confFile, "../master_config.json", "worker_config.json", "")
 	flag.Parse()
 }
 
@@ -38,7 +38,7 @@ func main()  {
 	}
 
 
-	if err = library.InitServer(); err != nil {
+	if err = library.InitMasterServer(); err != nil {
 		fmt.Println(err)
 		return
 	}

@@ -21,7 +21,7 @@ var (
 	GEtcServer *EtcServer
 )
 
-func InitServer() (err error) {
+func InitMasterServer() (err error) {
 	var(
 		cli   *clientv3.Client
 		kv    clientv3.KV
@@ -33,6 +33,32 @@ func InitServer() (err error) {
 		DialTimeout:          time.Duration(config.GMasterConfig.EtcDialTimeout) * time.Millisecond,
 	}); err != nil {
 		fmt.Println("etcd connect failed")
+		return
+	}
+
+	kv    = clientv3.NewKV(cli)
+	lease = clientv3.NewLease(cli)
+
+	GEtcServer = &EtcServer{
+		etcClient: cli,
+		etcKv:     kv,
+		etcLease:  lease,
+	}
+
+	return
+}
+
+func InitWorkerEtcServer() (err error) {
+	var (
+		cli   *clientv3.Client
+		kv    clientv3.KV
+		lease clientv3.Lease
+	)
+
+	if cli, err = clientv3.New(clientv3.Config{
+		Endpoints:            config.GWorkerConfig.EtcEndpoints,
+		DialTimeout:          time.Duration(config.GWorkerConfig.EtcDialTimeout) * time.Millisecond,
+	}); err != nil {
 		return
 	}
 
