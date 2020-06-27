@@ -12,9 +12,10 @@ import (
 )
 
 type EtcServer struct {
-	etcClient *clientv3.Client
-	etcKv     clientv3.KV
-	etcLease  clientv3.Lease
+	etcClient  *clientv3.Client
+	etcKv      clientv3.KV
+	etcLease   clientv3.Lease
+	etcWatcher clientv3.Watcher
 }
 
 var (
@@ -23,9 +24,10 @@ var (
 
 func InitMasterServer() (err error) {
 	var(
-		cli   *clientv3.Client
-		kv    clientv3.KV
-		lease clientv3.Lease
+		cli     *clientv3.Client
+		kv      clientv3.KV
+		lease   clientv3.Lease
+		watcher clientv3.Watcher
 	)
 
 	if cli, err = clientv3.New(clientv3.Config{
@@ -36,13 +38,15 @@ func InitMasterServer() (err error) {
 		return
 	}
 
-	kv    = clientv3.NewKV(cli)
-	lease = clientv3.NewLease(cli)
+	kv      = clientv3.NewKV(cli)
+	lease   = clientv3.NewLease(cli)
+	watcher = clientv3.NewWatcher(cli)
 
 	GEtcServer = &EtcServer{
-		etcClient: cli,
-		etcKv:     kv,
-		etcLease:  lease,
+		etcClient:  cli,
+		etcKv:      kv,
+		etcLease:   lease,
+		etcWatcher: watcher,
 	}
 
 	return
@@ -50,9 +54,10 @@ func InitMasterServer() (err error) {
 
 func InitWorkerEtcServer() (err error) {
 	var (
-		cli   *clientv3.Client
-		kv    clientv3.KV
-		lease clientv3.Lease
+		cli     *clientv3.Client
+		kv      clientv3.KV
+		lease   clientv3.Lease
+		watcher clientv3.Watcher
 	)
 
 	if cli, err = clientv3.New(clientv3.Config{
@@ -62,15 +67,20 @@ func InitWorkerEtcServer() (err error) {
 		return
 	}
 
-	kv    = clientv3.NewKV(cli)
-	lease = clientv3.NewLease(cli)
+	kv      = clientv3.NewKV(cli)
+	lease   = clientv3.NewLease(cli)
+	watcher = clientv3.NewWatcher(cli)
 
 	GEtcServer = &EtcServer{
-		etcClient: cli,
-		etcKv:     kv,
-		etcLease:  lease,
+		etcClient:  cli,
+		etcKv:      kv,
+		etcLease:   lease,
+		etcWatcher: watcher,
 	}
 
+	if err = GEtcServer.watchJobs(common.CRON_JOB_KEY); err != nil {
+		return
+	}
 	return
 }
 
@@ -168,5 +178,56 @@ func (etcServer *EtcServer) PutWithLease(key string, value string, leaseId clien
 	if _, err = etcServer.etcKv.Put(context.TODO(), key, value, clientv3.WithLease(leaseId)); err != nil {
 		return
 	}
+	return
+}
+
+func (etcServer *EtcServer) watchJobs(key string) (err error) {
+	var (
+		getResp            *clientv3.GetResponse
+		kvPair             *mvccpb.KeyValue
+		job                *common.Job
+		watchStartRevision int64
+		watchChan          clientv3.WatchChan
+		watchResp          clientv3.WatchResponse
+		watchEvent         *clientv3.Event
+		jobEvent           *common.JobEvent
+		jobName            string
+	)
+
+	if getResp, err = etcServer.etcKv.Get(context.TODO(), key, clientv3.WithPrefix()); err != nil {
+		return
+	}
+
+	for _, kvPair = range getResp.Kvs {
+		if job, err = common.UnmarshalJob(kvPair.Value); err == nil {
+			jobEvent = common.BuildJobEvent(common.JOB_EVENT_SAVE, job)
+			fmt.Println(jobEvent)
+		}
+	}
+
+	go func() {
+		watchStartRevision = getResp.Header.Revision + 1
+
+		watchChan = etcServer.etcWatcher.Watch(context.TODO(), key, clientv3.WithRev(watchStartRevision), clientv3.WithPrefix())
+
+		for watchResp = range watchChan {
+			for _, watchEvent = range watchResp.Events {
+				switch watchEvent.Type {
+				case mvccpb.PUT:
+					if job, err = common.UnmarshalJob(watchEvent.Kv.Value); err != nil {
+						continue
+					}
+
+					jobEvent = common.BuildJobEvent(common.JOB_EVENT_SAVE, job)
+				case mvccpb.DELETE :
+					jobName  = common.ExtractJobName(string(watchEvent.Kv.Key))
+					job      = &common.Job{Name:jobName}
+					jobEvent = common.BuildJobEvent(common.JOB_EVENT_DELETE, job)
+				}
+			}
+		}
+		fmt.Println(jobEvent)
+	}()
+
 	return
 }

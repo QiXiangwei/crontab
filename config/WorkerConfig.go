@@ -23,7 +23,6 @@ func InitWorkerConfig(confFile string) (err error) {
 	if context, err = ioutil.ReadFile(confFile); err != nil {
 		return
 	}
-
 	if err = json.Unmarshal(context, &config); err != nil {
 		return
 	}

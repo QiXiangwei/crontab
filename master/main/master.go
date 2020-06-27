@@ -15,7 +15,7 @@ var (
 )
 
 func initArgs() {
-	flag.StringVar(&confFile, "../master_config.json", "worker_config.json", "")
+	flag.StringVar(&confFile, "../master_config.json", "master_config.json", "")
 	flag.Parse()
 }
 
