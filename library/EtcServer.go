@@ -201,7 +201,7 @@ func (etcServer *EtcServer) watchJobs(key string) (err error) {
 	for _, kvPair = range getResp.Kvs {
 		if job, err = common.UnmarshalJob(kvPair.Value); err == nil {
 			jobEvent = common.BuildJobEvent(common.JOB_EVENT_SAVE, job)
-			fmt.Println(jobEvent)
+			fmt.Println(*jobEvent)
 		}
 	}
 
@@ -224,9 +224,9 @@ func (etcServer *EtcServer) watchJobs(key string) (err error) {
 					job      = &common.Job{Name:jobName}
 					jobEvent = common.BuildJobEvent(common.JOB_EVENT_DELETE, job)
 				}
+				fmt.Println(*jobEvent)
 			}
 		}
-		fmt.Println(jobEvent)
 	}()
 
 	return

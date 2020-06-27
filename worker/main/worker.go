@@ -4,7 +4,6 @@ import (
 	"crontab/config"
 	"crontab/library"
 	"flag"
-	"fmt"
 	"runtime"
 	"time"
 )
@@ -14,7 +13,7 @@ var (
 )
 
 func initArgs() {
-	flag.StringVar(&confFile, "worker_config", "worker_config.json", "")
+	flag.StringVar(&confFile, "worker_config", "./worker/worker_config.json", "")
 	flag.Parse()
 }
 
@@ -31,7 +30,6 @@ func main() {
 	initEnv()
 
 	if err = config.InitWorkerConfig(confFile); err != nil {
-		fmt.Println(err.Error())
 		return
 	}
 
