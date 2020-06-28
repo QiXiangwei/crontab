@@ -3,6 +3,7 @@ package main
 import (
 	"crontab/config"
 	"crontab/library"
+	"crontab/worker"
 	"flag"
 	"runtime"
 	"time"
@@ -30,6 +31,10 @@ func main() {
 	initEnv()
 
 	if err = config.InitWorkerConfig(confFile); err != nil {
+		return
+	}
+
+	if err = worker.InitScheduler(); err != nil {
 		return
 	}
 
