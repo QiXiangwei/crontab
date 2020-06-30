@@ -2,6 +2,7 @@ package common
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorhill/cronexpr"
 	"strings"
 	"time"
@@ -70,6 +71,7 @@ func BuildJobSchedulePlan(job *Job) (jobSchedulerPlan *JobSchedulerPlan, err err
 	)
 
 	if expr, err = cronexpr.Parse(job.CronExpr); err != nil {
+		fmt.Println("expr parse fail" + job.CronExpr)
 		return
 	}
 

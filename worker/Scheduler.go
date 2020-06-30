@@ -47,7 +47,7 @@ func (scheduler *Scheduler) handleJobEvent(jobEvent *common.JobEvent) {
 		err error
 		jobExisted bool
 	)
-
+	fmt.Println(jobEvent.EventType)
 	switch jobEvent.EventType {
 	case common.JOB_EVENT_SAVE:
 		if jobSchedulePlan, err = common.BuildJobSchedulePlan(jobEvent.Job); err != nil {
@@ -55,6 +55,8 @@ func (scheduler *Scheduler) handleJobEvent(jobEvent *common.JobEvent) {
 		}
 		scheduler.JobPlanTable[jobEvent.Job.Name] = jobSchedulePlan
 	case common.JOB_EVENT_DELETE:
+		fmt.Println(jobEvent.Job.Name)
+		fmt.Println(*scheduler.JobPlanTable[jobEvent.Job.Name].Job)
 		if jobSchedulePlan, jobExisted = scheduler.JobPlanTable[jobEvent.Job.Name]; jobExisted {
 			delete(scheduler.JobPlanTable, jobEvent.Job.Name)
 		}
@@ -75,6 +77,7 @@ func (scheduler *Scheduler) schedulerLoop() {
 	for {
 		select {
 		case jobEvent = <- scheduler.JobEventChan:
+			fmt.Println(jobEvent.Job.Name)
 		scheduler.handleJobEvent(jobEvent)
 		case <- scheduleTimer.C:
 		}
