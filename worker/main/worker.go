@@ -46,6 +46,10 @@ func main() {
 		return
 	}
 
+	if err = library.InitRedisServer(); err != nil {
+		return
+	}
+
 	for {
 		time.Sleep(1 * time.Second)
 	}

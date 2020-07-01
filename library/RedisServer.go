@@ -3,6 +3,7 @@ package library
 import (
 	"crontab/config"
 	"github.com/go-redis/redis"
+	"time"
 )
 
 type RedisServer struct {
@@ -10,10 +11,10 @@ type RedisServer struct {
 }
 
 var (
-	GRedisClient *RedisServer
+	GRedisServer *RedisServer
 )
 
-func InitRedisClient() (err error) {
+func InitRedisServer() (err error) {
 	var (
 		c *redis.Client
 	)
@@ -24,9 +25,33 @@ func InitRedisClient() (err error) {
 		DB:       config.GMasterConfig.RedisDB,
 	})
 
-	GRedisClient = &RedisServer{RedisClient: c}
+	GRedisServer = &RedisServer{RedisClient: c}
 
 	if _, err = c.Ping().Result(); err != nil {
+		return
+	}
+	return
+}
+
+func (redisServer *RedisServer) GetCacheData(key string) (data string, err error) {
+	var (
+		stringCmd *redis.StringCmd
+	)
+
+	stringCmd = redisServer.RedisClient.Get(key)
+	if data, err = stringCmd.Result(); err != nil {
+		return
+	}
+	return
+}
+
+func (redisServer *RedisServer) SetCacheData(key string, data interface{}, exprTime time.Duration) (result string, err error) {
+	var (
+		statusCmd *redis.StatusCmd
+	)
+
+	statusCmd = redisServer.RedisClient.Set(key, data, exprTime)
+	if result, err = statusCmd.Result(); err != nil {
 		return
 	}
 	return

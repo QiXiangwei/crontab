@@ -2,6 +2,7 @@ package worker
 
 import (
 	"crontab/common"
+	"crontab/library"
 	"fmt"
 	"time"
 )
@@ -114,7 +115,16 @@ func (scheduler *Scheduler) PushJobEvent(jobEvent *common.JobEvent)  {
 }
 
 func (scheduler *Scheduler) PushJobResult(result *common.JobExecuteResult) {
+	var (
+		err        error
+		redisKey   string
+	)
+
 	scheduler.JobExecuteChan <- result
+	redisKey = common.REDIS_CRON_RESULT + result.ExecuteInfo.Job.Name
+	if _, err = library.GRedisServer.SetCacheData(redisKey, result, 3600*24); err != nil {
+		fmt.Println("set job result fail")
+	}
 }
 
 func InitScheduler() (err error) {

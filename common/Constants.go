@@ -6,4 +6,6 @@ const (
 
 	JOB_EVENT_SAVE   = 0
 	JOB_EVENT_DELETE = 1
+
+	REDIS_CRON_RESULT = "cron_result_"
 )

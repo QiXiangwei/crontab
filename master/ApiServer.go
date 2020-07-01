@@ -33,6 +33,8 @@ func InitApiServer() (err error) {
 	mux.HandleFunc("/job/list", handleJobList)
 	mux.HandleFunc("/job/kill", handleJobKill)
 
+	mux.HandleFunc("/job/result", handleJobResult)
+
 	if listen, err = net.Listen("tcp", ":" + strconv.Itoa(config.GMasterConfig.ApiPort)); err != nil {
 		return
 	}
@@ -48,6 +50,42 @@ func InitApiServer() (err error) {
 	go httpServer.Serve(listen)
 
 	return
+}
+
+func handleJobResult(rep http.ResponseWriter, req *http.Request) {
+	var (
+		err       error
+		data      string
+		jobName   string
+		key       string
+		resut     []byte
+		jobResult *common.JobExecuteResult
+
+	)
+
+	if err = req.ParseForm(); err != nil {
+		goto ERR
+	}
+
+	jobName = req.PostForm.Get("jobName")
+	key     = common.REDIS_CRON_RESULT + jobName
+	if data, err = library.GRedisServer.GetCacheData(key); err != nil {
+		goto ERR
+	}
+
+	if err = json.Unmarshal([]byte(data), jobResult); err != nil {
+		goto ERR
+	}
+
+	if resut, err = common.BuildResponse(0, "success", jobResult); err == nil {
+		rep.Write(resut)
+	}
+
+	return
+ERR:
+	if resut, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
+		rep.Write(resut)
+	}
 }
 
 func handleJobKill(rep http.ResponseWriter, req *http.Request) {
