@@ -234,3 +234,8 @@ func (etcServer *EtcServer) watchJobs(key string) (err error) {
 
 	return
 }
+
+func (etcServer *EtcServer) CreateEtcLock(name string) (lock *Lock) {
+	lock = InitLock(name, etcServer.etcKv, etcServer.etcLease)
+	return
+}
